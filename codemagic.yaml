@@ -1,0 +1,24 @@
+# codemagic.yaml
+workflows:
+  default-workflow:
+    name: Build APK
+    max_build_duration: 30
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        APP_NAME: "Mando Samsung TV"
+        APP_ID: "com.yourcompany.mando_samsung_tv"
+    scripts:
+      - name: Get dependencies
+        script: flutter pub get
+      - name: Build Android APK
+        script: flutter build apk --release
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+    publishing:
+      email:
+        recipients:
+          - miosegundamano7@gmail.com
