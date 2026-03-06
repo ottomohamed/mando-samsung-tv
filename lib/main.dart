@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'themes/app_theme.dart';
-import 'screens/remote_screen.dart';
+import 'screens/remote_screen_web.dart';
 import 'models/ad_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // تهيئة AdMob
+  // لا نحدد الاتجاه - التطبيق سيدعم العمودي والأفقي تلقائياً
   final adManager = AdManager();
   await adManager.initialize();
   
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(color: AppTheme.textGrey),
         ),
       ),
-      home: const RemoteScreen(),
+      home: const RemoteScreenWeb(),
     );
   }
 }

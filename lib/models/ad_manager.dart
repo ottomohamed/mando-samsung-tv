@@ -1,5 +1,6 @@
 // lib/models/ad_manager.dart
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdManager {
@@ -27,99 +28,114 @@ class AdManager {
   bool get isRewardedAdLoaded => _isRewardedAdLoaded;
 
   // أكواد الإعلانات من حسابك
-  String get _bannerAdUnitId => 'ca-app-pub-6500154299593172/1589134287';
-  String get _interstitialAdUnitId => 'ca-app-pub-6500154299593172/4291173456';
-  String get _rewardedAdUnitId => 'ca-app-pub-6500154299593172/2597596640';
+  String get _bannerAdUnitId {
+    if (kIsWeb) {
+      return 'ca-app-pub-3940256099942544/6300978111'; // Test Ad for Web
+    } else if (Platform.isAndroid) {
+      return 'ca-app-pub-6500154299593172/1589134287'; // Android Banner
+    } else if (Platform.isIOS) {
+      return 'ca-app-pub-6500154299593172/1589134287'; // iOS Banner
+    } else {
+      return 'ca-app-pub-3940256099942544/6300978111'; // Test Ad for other platforms
+    }
+  }
+
+  String get _interstitialAdUnitId {
+    if (kIsWeb) {
+      return 'ca-app-pub-3940256099942544/1033173712'; // Test Ad for Web
+    } else if (Platform.isAndroid) {
+      return 'ca-app-pub-6500154299593172/4291173456'; // Android Interstitial
+    } else if (Platform.isIOS) {
+      return 'ca-app-pub-6500154299593172/4291173456'; // iOS Interstitial
+    } else {
+      return 'ca-app-pub-3940256099942544/1033173712'; // Test Ad for other platforms
+    }
+  }
 
   // تهيئة AdMob
   Future<void> initialize() async {
-    await MobileAds.instance.initialize();
-    print('✅ AdMob initialized');
+    print('📢 Initializing AdManager...');
     
-    // تحميل جميع الإعلانات
-    loadBannerAd();
-    loadInterstitialAd();
-    loadRewardedAd();
+    if (kIsWeb) {
+      print('🌐 Web platform detected - using test ads');
+      // على الويب، نجرب تحميل الإعلانات لكن نتوقع أخطاء
+      try {
+        loadBannerAd();
+        loadInterstitialAd();
+      } catch (e) {
+        print('⚠️ Web ads not fully supported: $e');
+      }
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      try {
+        await MobileAds.instance.initialize();
+        print('✅ AdMob initialized on mobile');
+        loadBannerAd();
+        loadInterstitialAd();
+      } catch (e) {
+        print('❌ Failed to initialize AdMob: $e');
+      }
+    } else {
+      print('ℹ️ Ads disabled on this platform');
+    }
   }
 
   // تحميل Banner Ad
   void loadBannerAd() {
-    _bannerAd = BannerAd(
-      adUnitId: _bannerAdUnitId,
-      request: const AdRequest(),
-      size: AdSize.banner,
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          print('✅ BannerAd loaded');
-          _isBannerAdLoaded = true;
-        },
-        onAdFailedToLoad: (ad, error) {
-          print('❌ BannerAd failed: $error');
-          ad.dispose();
-          _isBannerAdLoaded = false;
-        },
-        onAdOpened: (ad) => print('BannerAd opened'),
-        onAdClosed: (ad) => print('BannerAd closed'),
-      ),
-    )..load();
+    try {
+      _bannerAd = BannerAd(
+        adUnitId: _bannerAdUnitId,
+        request: const AdRequest(),
+        size: AdSize.banner,
+        listener: BannerAdListener(
+          onAdLoaded: (ad) {
+            print('✅ BannerAd loaded');
+            _isBannerAdLoaded = true;
+          },
+          onAdFailedToLoad: (ad, error) {
+            print('❌ BannerAd failed: $error');
+            ad.dispose();
+            _isBannerAdLoaded = false;
+          },
+          onAdOpened: (ad) => print('BannerAd opened'),
+          onAdClosed: (ad) => print('BannerAd closed'),
+        ),
+      )..load();
+    } catch (e) {
+      print('⚠️ Error loading banner ad: $e');
+    }
   }
 
   // تحميل Interstitial Ad
   void loadInterstitialAd() {
-    InterstitialAd.load(
-      adUnitId: _interstitialAdUnitId,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('✅ InterstitialAd loaded');
-          _interstitialAd = ad;
-          _isInterstitialAdLoaded = true;
-          
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              print('InterstitialAd dismissed');
-              ad.dispose();
-              _interstitialAd = null;
-              _isInterstitialAdLoaded = false;
-              loadInterstitialAd();
-            },
-          );
-        },
-        onAdFailedToLoad: (error) {
-          print('❌ InterstitialAd failed: $error');
-          _isInterstitialAdLoaded = false;
-        },
-      ),
-    );
-  }
-
-  // تحميل Rewarded Ad
-  void loadRewardedAd() {
-    RewardedAd.load(
-      adUnitId: _rewardedAdUnitId,
-      request: const AdRequest(),
-      rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) {
-          print('✅ RewardedAd loaded');
-          _rewardedAd = ad;
-          _isRewardedAdLoaded = true;
-          
-          ad.fullScreenContentCallback = FullScreenContentCallback(
-            onAdDismissedFullScreenContent: (ad) {
-              print('RewardedAd dismissed');
-              ad.dispose();
-              _rewardedAd = null;
-              _isRewardedAdLoaded = false;
-              loadRewardedAd();
-            },
-          );
-        },
-        onAdFailedToLoad: (error) {
-          print('❌ RewardedAd failed: $error');
-          _isRewardedAdLoaded = false;
-        },
-      ),
-    );
+    try {
+      InterstitialAd.load(
+        adUnitId: _interstitialAdUnitId,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (ad) {
+            print('✅ InterstitialAd loaded');
+            _interstitialAd = ad;
+            _isInterstitialAdLoaded = true;
+            
+            ad.fullScreenContentCallback = FullScreenContentCallback(
+              onAdDismissedFullScreenContent: (ad) {
+                print('InterstitialAd dismissed');
+                ad.dispose();
+                _interstitialAd = null;
+                _isInterstitialAdLoaded = false;
+                loadInterstitialAd(); // تحميل إعلان جديد
+              },
+            );
+          },
+          onAdFailedToLoad: (error) {
+            print('❌ InterstitialAd failed: $error');
+            _isInterstitialAdLoaded = false;
+          },
+        ),
+      );
+    } catch (e) {
+      print('⚠️ Error loading interstitial ad: $e');
+    }
   }
 
   // عرض Interstitial Ad
@@ -130,21 +146,6 @@ class AdManager {
     } else {
       print('InterstitialAd not ready');
       loadInterstitialAd();
-    }
-  }
-
-  // عرض Rewarded Ad
-  void showRewardedAd() {
-    if (_rewardedAd != null) {
-      _rewardedAd!.show(
-        onUserEarnedReward: (ad, reward) {
-          print('🏆 User earned reward: ${reward.amount} ${reward.type}');
-        },
-      );
-      _isRewardedAdLoaded = false;
-    } else {
-      print('RewardedAd not ready');
-      loadRewardedAd();
     }
   }
 

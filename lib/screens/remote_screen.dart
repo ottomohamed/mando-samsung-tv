@@ -1,44 +1,31 @@
-// lib/screens/remote_screen.dart
+// lib/screens/remote_screen_web.dart
 import 'package:flutter/material.dart';
 import '../themes/app_theme.dart';
 import '../models/tv_connection.dart';
 import 'tv_search_screen.dart';
-import '../models/ad_manager.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../widgets/streaming_buttons_v2.dart';
 
-class RemoteScreen extends StatefulWidget {
-  const RemoteScreen({super.key});
+class RemoteScreenWeb extends StatefulWidget {
+  const RemoteScreenWeb({super.key});
 
   @override
-  State<RemoteScreen> createState() => _RemoteScreenState();
+  State<RemoteScreenWeb> createState() => _RemoteScreenWebState();
 }
 
-class _RemoteScreenState extends State<RemoteScreen> {
+class _RemoteScreenWebState extends State<RemoteScreenWeb> {
   bool _isConnected = false;
   String _tvName = "Living Room TV";
   int _volumeLevel = 50;
   final TVConnection _tvConnection = TVConnection();
-  final AdManager _adManager = AdManager();
-  bool _showInterstitialOnOpen = true;
 
   @override
   void initState() {
     super.initState();
     _checkConnection();
-    
-    Future.delayed(const Duration(seconds: 1), () {
-      if (_showInterstitialOnOpen && mounted) {
-        _adManager.showInterstitialAd();
-        setState(() {
-          _showInterstitialOnOpen = false;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
-    _adManager.dispose();
     super.dispose();
   }
 
@@ -94,44 +81,60 @@ class _RemoteScreenState extends State<RemoteScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // شريط الحالة
-              Container(
-                margin: const EdgeInsets.all(12),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.glassWhite.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _isConnected ? AppTheme.connectedGreen : Colors.red,
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+              // شريط الحالة وزر Power في الأعلى
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // شريط الحالة
+                  Container(
+                    margin: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.glassWhite.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
                         color: _isConnected ? AppTheme.connectedGreen : Colors.red,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _isConnected 
-                                ? AppTheme.connectedGreen.withOpacity(0.5) 
-                                : Colors.red.withOpacity(0.5),
-                            blurRadius: 4,
-                          ),
-                        ],
+                        width: 1,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _isConnected ? 'Samsung TV Connected' : 'Disconnected',
-                      style: const TextStyle(color: AppTheme.textWhite, fontSize: 12),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _isConnected ? AppTheme.connectedGreen : Colors.red,
+                            boxShadow: [
+                              BoxShadow(
+                                color: _isConnected 
+                                    ? AppTheme.connectedGreen.withOpacity(0.5) 
+                                    : Colors.red.withOpacity(0.5),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _isConnected ? 'Samsung TV Connected' : 'Disconnected',
+                          style: const TextStyle(color: AppTheme.textWhite, fontSize: 12),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  
+                  // زر Power في الأعلى
+                  Container(
+                    margin: const EdgeInsets.all(12),
+                    child: _buildSmallButton(
+                      icon: Icons.power_settings_new,
+                      onPressed: () => _sendCommand('KEY_POWER'),
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
               ),
               
               // TV Name مع أيقونة الإشارة
@@ -391,10 +394,10 @@ class _RemoteScreenState extends State<RemoteScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildAppIcon('N', Colors.red, () => _sendCommand('netflix')),
-                    _buildAppIcon('YT', Colors.red, () => _sendCommand('youtube')),
-                    _buildAppIcon('P', Colors.blue, () => _sendCommand('prime')),
-                    _buildAppIcon('D', const Color(0xFF113CCF), () => _sendCommand('disney')),
+                    NetflixButton(onPressed: () => _sendCommand('netflix')),
+                    YouTubeButton(onPressed: () => _sendCommand('youtube')),
+                    PrimeVideoButton(onPressed: () => _sendCommand('prime')),
+                    DisneyPlusButton(onPressed: () => _sendCommand('disney')),
                   ],
                 ),
               ),
@@ -412,69 +415,109 @@ class _RemoteScreenState extends State<RemoteScreen> {
                 ),
               ),
               
-              // زر المايكروفون مع AI Assistant
+              // أزرار التحكم السفلية (Power + AI Assistant)
               Container(
                 margin: const EdgeInsets.only(bottom: 12),
-                child: Column(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppTheme.glassWhite.withOpacity(0.1),
-                        border: Border.all(
-                          color: AppTheme.accentCyan,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accentCyan.withOpacity(0.5),
-                            blurRadius: 15,
-                            spreadRadius: 3,
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            _sendCommand('KEY_MIC');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('AI Assistant listening...'),
-                                duration: Duration(seconds: 2),
+                    // زر Power
+                    Column(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.glassWhite.withOpacity(0.1),
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.5),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 3,
                               ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(30),
-                          child: Icon(
-                            Icons.mic,
-                            color: AppTheme.accentCyan,
-                            size: 30,
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _sendCommand('KEY_POWER'),
+                              borderRadius: BorderRadius.circular(30),
+                              child: Icon(
+                                Icons.power_settings_new,
+                                color: Colors.red,
+                                size: 30,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'AI Assistant',
-                      style: TextStyle(
-                        color: AppTheme.textGrey,
-                        fontSize: 11,
-                      ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Power',
+                          style: TextStyle(
+                            color: AppTheme.textGrey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
                     ),
                     
-                    // Banner Ad - تحت AI Assistant مباشرة
-                    if (_adManager.isBannerAdLoaded && _adManager.bannerAd != null)
-                      Container(
-                        margin: const EdgeInsets.only(top: 8),
-                        child: SizedBox(
-                          width: _adManager.bannerAd!.size.width.toDouble(),
-                          height: _adManager.bannerAd!.size.height.toDouble(),
-                          child: AdWidget(ad: _adManager.bannerAd!),
+                    // زر AI Assistant
+                    Column(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppTheme.glassWhite.withOpacity(0.1),
+                            border: Border.all(
+                              color: AppTheme.accentCyan,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.accentCyan.withOpacity(0.5),
+                                blurRadius: 15,
+                                spreadRadius: 3,
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                _sendCommand('KEY_MIC');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('AI Assistant listening...'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(30),
+                              child: Icon(
+                                Icons.mic,
+                                color: AppTheme.accentCyan,
+                                size: 30,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'AI Assistant',
+                          style: TextStyle(
+                            color: AppTheme.textGrey,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -523,10 +566,11 @@ class _RemoteScreenState extends State<RemoteScreen> {
     );
   }
 
-  // أزرار صغيرة للجانبين
+  // أزرار صغيرة للجانبين مع دعم لون مخصص
   Widget _buildSmallButton({
     required IconData icon,
     required VoidCallback onPressed,
+    Color? color,
   }) {
     return Container(
       width: 36,
@@ -535,12 +579,12 @@ class _RemoteScreenState extends State<RemoteScreen> {
         shape: BoxShape.circle,
         color: AppTheme.glassWhite.withOpacity(0.1),
         border: Border.all(
-          color: AppTheme.accentCyan.withOpacity(0.3),
+          color: color?.withOpacity(0.5) ?? AppTheme.accentCyan.withOpacity(0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.glowBlue,
+            color: color?.withOpacity(0.3) ?? AppTheme.glowBlue,
             blurRadius: 4,
           ),
         ],
@@ -552,44 +596,8 @@ class _RemoteScreenState extends State<RemoteScreen> {
           borderRadius: BorderRadius.circular(18),
           child: Icon(
             icon,
-            color: AppTheme.textWhite,
+            color: color ?? AppTheme.textWhite,
             size: 18,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // أيقونات التطبيقات
-  Widget _buildAppIcon(String text, Color color, VoidCallback onPressed) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: color.withOpacity(0.8),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 6,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(10),
-          child: Center(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
           ),
         ),
       ),
