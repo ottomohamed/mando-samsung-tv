@@ -9,7 +9,7 @@ class QuickMenu extends StatelessWidget {
   const QuickMenu({super.key, required this.onClose});
 
   Future<void> _launchStore() async {
-    // TODO: استبدل هذا الرابط برابط متجر التطبيق الذكي عندما ينشر
+    // TODO: Replace with your actual app store URL when available
     const String appStoreUrl = 'https://play.google.com/store/apps/details?id=com.yourcompany.mando_premium';
     final Uri uri = Uri.parse(appStoreUrl);
     
@@ -36,7 +36,7 @@ class QuickMenu extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // شريط العنوان (ثابت في الأعلى)
+          // Fixed header
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -59,19 +59,19 @@ class QuickMenu extends StatelessWidget {
           ),
           const Divider(color: AppTheme.accentCyan, height: 1),
           
-          // المحتوى القابل للتمرير
+          // Scrollable content
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // قائمة الخيارات الحالية
+                  // Regular options
                   ListTile(
                     leading: Icon(Icons.brightness_6, color: AppTheme.accentCyan),
                     title: const Text('Brightness', style: TextStyle(color: AppTheme.textWhite)),
                     subtitle: const Text('Adjust screen brightness', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right, color: AppTheme.accentCyan),
                     onTap: () {
-                      // TODO: فتح إعدادات السطوع
+                      // TODO: Open brightness settings
                       onClose();
                     },
                   ),
@@ -81,7 +81,7 @@ class QuickMenu extends StatelessWidget {
                     subtitle: const Text('Turn off TV after 30/60/90 min', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right, color: AppTheme.accentCyan),
                     onTap: () {
-                      // TODO: فتح مؤقت النوم
+                      // TODO: Open sleep timer
                       onClose();
                     },
                   ),
@@ -91,7 +91,7 @@ class QuickMenu extends StatelessWidget {
                     subtitle: const Text('Standard / Dynamic / Movie', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right, color: AppTheme.accentCyan),
                     onTap: () {
-                      // TODO: فتح إعدادات الصورة
+                      // TODO: Open picture settings
                       onClose();
                     },
                   ),
@@ -101,7 +101,7 @@ class QuickMenu extends StatelessWidget {
                     subtitle: const Text('Enable/Disable audio enhancements', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right, color: AppTheme.accentCyan),
                     onTap: () {
-                      // TODO: فتح إعدادات الصوت
+                      // TODO: Open sound settings
                       onClose();
                     },
                   ),
@@ -111,14 +111,14 @@ class QuickMenu extends StatelessWidget {
                     subtitle: const Text('HDMI1 / HDMI2 / AV', style: TextStyle(color: AppTheme.textGrey, fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right, color: AppTheme.accentCyan),
                     onTap: () {
-                      // TODO: فتح اختيار المدخل
+                      // TODO: Open input selection
                       onClose();
                     },
                   ),
                   
                   const Divider(color: AppTheme.accentCyan, height: 20),
                   
-                  // قسم التطبيق الذكي (قابل للنقر)
+                  // Premium app section - now in English
                   InkWell(
                     onTap: _launchStore,
                     child: Container(
@@ -136,7 +136,7 @@ class QuickMenu extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          // أيقونة ونجوم
+                          // Icons and title
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -156,30 +156,30 @@ class QuickMenu extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           
-                          // معلومات التطبيق الذكي
+                          // Premium features
                           const Text(
-                            '✨ تحكم ذكي بتلفازك بالصوت',
+                            '✨ Voice control your TV',
                             style: TextStyle(color: AppTheme.textWhite, fontSize: 14),
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            '🎯 اقتراحات مخصصة لمسلسلاتك المفضلة',
+                            '🎯 Personalized show recommendations',
                             style: TextStyle(color: AppTheme.textWhite, fontSize: 14),
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            '😴 إغلاق تلقائي عند النوم',
+                            '😴 Automatic sleep timer',
                             style: TextStyle(color: AppTheme.textWhite, fontSize: 14),
                           ),
                           const SizedBox(height: 4),
                           const Text(
-                            '📊 إحصائيات المشاهدة',
+                            '📊 Viewing statistics',
                             style: TextStyle(color: AppTheme.textWhite, fontSize: 14),
                           ),
                           
                           const SizedBox(height: 12),
                           
-                          // زر الانتقال
+                          // CTA Button
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                             decoration: BoxDecoration(
@@ -190,7 +190,7 @@ class QuickMenu extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'جربه الآن',
+                                  'Try Now',
                                   style: TextStyle(
                                     color: Colors.black,
                                     fontWeight: FontWeight.bold,
@@ -204,9 +204,9 @@ class QuickMenu extends StatelessWidget {
                           
                           const SizedBox(height: 8),
                           
-                          // ملاحظة
+                          // Coming soon note
                           const Text(
-                            'قريباً على المتجر',
+                            'Coming soon to the store',
                             style: TextStyle(
                               color: AppTheme.textGrey,
                               fontSize: 11,

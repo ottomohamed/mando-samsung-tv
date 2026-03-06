@@ -19,7 +19,6 @@ class TVConnection {
 
   // البحث عن التلفزيونات في الشبكة
   Future<List<Map<String, String>>> scanForTVs() async {
-    // التحقق من المنصة
     if (!Platform.isAndroid && !Platform.isIOS) {
       print('⚠️ Scanning only works on mobile devices');
       return [];
@@ -39,20 +38,16 @@ class TVConnection {
     
     List<Map<String, String>> tvs = [];
     
-    // البحث باستخدام TizenHelperMethods
     TizenHelperMethods.scanNetwork(wifiIP).listen((tv) {
       print('✅ Found TV: ${tv.name}');
-      // تم إزالة remoteAddress واستخدام IP افتراضي
       tvs.add({
         'name': tv.name ?? 'Samsung TV',
-        'ip': '192.168.1.xxx', // مؤقتاً
+        'ip': '192.168.1.xxx',
       });
     });
     
-    // انتظر 10 ثواني للنتائج
     await Future.delayed(const Duration(seconds: 10));
     
-    // إذا لم نجد، نضيف IPs شائعة
     if (tvs.isEmpty) {
       List<String> parts = wifiIP.split('.');
       String subnet = '${parts[0]}.${parts[1]}.${parts[2]}.';
@@ -70,7 +65,7 @@ class TVConnection {
     return tvs;
   }
 
-  // الاتصال بتلفزيون محدد (يدوي)
+  // الاتصال بتلفزيون محدد
   Future<bool> connectToTV(String name, String ip) async {
     try {
       _tvName = name;
@@ -78,6 +73,19 @@ class TVConnection {
       _isConnected = true;
       
       print('✅ Connected to $name at $ip');
+      
+      // محاولة الاتصال عبر المنفذ الآمن 8002
+      try {
+        // استخدام TizenHelperMethods للاتصال الآمن
+        TizenHelperMethods.selectedTv = Tv(ip: ip, name: name);
+        
+        // إرسال أمر اختبار لتأكيد الاتصال
+        TizenHelperMethods.selectedTv!.addToSocket('KEY_POWER');
+        print('📡 Test command sent to TV');
+      } catch (e) {
+        print('⚠️ Direct connection attempt: $e');
+      }
+      
       return true;
     } catch (e) {
       print('❌ Connection failed: $e');
@@ -92,6 +100,15 @@ class TVConnection {
       _tvName = name;
       _isConnected = true;
       print('✅ Connected manually to $name at $ip');
+      
+      // نفس المحاولة للاتصال الآمن
+      try {
+        TizenHelperMethods.selectedTv = Tv(ip: ip, name: name);
+        TizenHelperMethods.selectedTv!.addToSocket('KEY_POWER');
+      } catch (e) {
+        print('⚠️ Manual connection test: $e');
+      }
+      
       return true;
     } catch (e) {
       print('❌ Manual connection failed: $e');
@@ -103,7 +120,18 @@ class TVConnection {
   void sendKey(String keyCode) {
     if (!_isConnected) return;
     
-    print('📡 Sending command: $keyCode to $_tvName');
+    print('📡 Sending command: $keyCode to $_tvIP');
+    
+    // محاولة إرسال الأمر عبر TizenHelperMethods
+    try {
+      if (TizenHelperMethods.selectedTv != null) {
+        TizenHelperMethods.selectedTv!.addToSocket(keyCode);
+      } else {
+        print('⚠️ TV not selected for sending');
+      }
+    } catch (e) {
+      print('❌ Failed to send key: $e');
+    }
   }
 
   // فصل الاتصال
