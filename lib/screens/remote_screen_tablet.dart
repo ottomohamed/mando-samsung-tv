@@ -439,8 +439,8 @@ class _RemoteScreenTabletState extends State<RemoteScreenTablet> {
             ),
           ),
           Container(
-            width: 180,
-            height: 180,
+            width: 220,
+            height: 220,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppTheme.glassWhite.withOpacity(0.05),
@@ -581,10 +581,10 @@ class _RemoteScreenTabletState extends State<RemoteScreenTablet> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          NetflixButton(onPressed: () => _sendCommand('netflix')),
-          YouTubeButton(onPressed: () => _sendCommand('youtube')),
-          PrimeVideoButton(onPressed: () => _sendCommand('prime')),
-          DisneyPlusButton(onPressed: () => _sendCommand('disney')),
+          NetflixButton(onPressed: () => _sendCommand('KEY_NETFLIX')),
+          YouTubeButton(onPressed: () => _sendCommand('KEY_YOUTUBE')),
+          PrimeVideoButton(onPressed: () => _sendCommand('KEY_PRIMEINSTANT')),
+          DisneyPlusButton(onPressed: () => _sendCommand('KEY_DISNEYPLUS')),
         ],
       ),
     );
@@ -684,8 +684,8 @@ class _RemoteScreenTabletState extends State<RemoteScreenTablet> {
     required VoidCallback onPressed,
   }) {
     return Container(
-      width: 30,
-      height: 30,
+      width: 48,
+      height: 48,
       margin: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -705,11 +705,11 @@ class _RemoteScreenTabletState extends State<RemoteScreenTablet> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(24),
           child: Icon(
             icon,
             color: AppTheme.accentCyan,
-            size: 16,
+            size: 22,
           ),
         ),
       ),

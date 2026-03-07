@@ -10,10 +10,12 @@ workflows:
       cocoapods: default
       vars:
         APP_NAME: "Mando Samsung TV"
-        APP_ID: "com.yourcompany.mando_samsung_tv"
+        APP_ID: "com.pyramic.samsungsmarttv"
     scripts:
       - name: Get dependencies
         script: flutter pub get
+      - name: Analyze code
+        script: flutter analyze --no-fatal-infos
       - name: Build Android APK
         script: flutter build apk --release
     artifacts:
