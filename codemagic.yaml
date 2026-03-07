@@ -21,32 +21,34 @@ workflows:
 
       - name: Setup keystore
         script: |
+          # فك تشفير الـ keystore من base64
           echo $CM_KEYSTORE | base64 --decode > $CM_BUILD_DIR/mando_key.jks
+          
+          # تصدير المسار كمتغير بيئة
+          echo "CM_KEYSTORE_PATH=$CM_BUILD_DIR/mando_key.jks" >> $CM_ENV
+          
+          # إنشاء key.properties لـ Gradle
+          cat > "$FCI_BUILD_DIR/android/key.properties" <<EOF
+          storePassword=$CM_KEYSTORE_PASSWORD
+          keyPassword=$CM_KEY_PASSWORD
+          keyAlias=$CM_KEY_ALIAS
+          storeFile=$CM_BUILD_DIR/mando_key.jks
+          EOF
 
-      - name: Build release APK
+      - name: Build signed APK
         script: |
           flutter build apk --release \
             --build-name=1.0.0 \
             --build-number=1
 
-      - name: Sign APK
-        script: |
-          $ANDROID_SDK_ROOT/build-tools/*/apksigner sign \
-            --ks $CM_BUILD_DIR/mando_key.jks \
-            --ks-pass pass:$CM_KEYSTORE_PASSWORD \
-            --ks-key-alias $CM_KEY_ALIAS \
-            --key-pass pass:$CM_KEY_PASSWORD \
-            --out build/app/outputs/flutter-apk/app-release-signed.apk \
-            build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Build release AAB
+      - name: Build signed AAB
         script: |
           flutter build appbundle --release \
             --build-name=1.0.0 \
             --build-number=1
 
     artifacts:
-      - build/app/outputs/flutter-apk/app-release-signed.apk
+      - build/app/outputs/flutter-apk/app-release.apk
       - build/app/outputs/bundle/release/app-release.aab
 
     publishing:
