@@ -1,32 +1,97 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'themes/app_theme.dart';
 import 'screens/remote_screen_tablet.dart';
 import 'models/ad_manager.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ دعم كامل لكل الاتجاهات - مطلوب من المتجر
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
 
-  // شريط الحالة شفاف يتناسب مع التصميم الداكن
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
 
-  final adManager = AdManager();
-  await adManager.initialize();
+    try {
+      final adManager = AdManager();
+      await adManager.initialize();
+    } catch (e) {
+      debugPrint('AdManager error: $e');
+    }
 
-  runApp(const MyApp());
+    runApp(const MyApp());
+
+  }, (error, stack) {
+    runApp(ErrorApp(error: error.toString(), stack: stack.toString()));
+  });
+}
+
+// شاشة عرض الخطأ بدل الـ crash
+class ErrorApp extends StatelessWidget {
+  final String error;
+  final String stack;
+  const ErrorApp({super.key, required this.error, required this.stack});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 50),
+              const Text(
+                '❌ App Error',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.5)),
+                ),
+                child: Text(
+                  error,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Stack trace:',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                stack.length > 1500 ? stack.substring(0, 1500) : stack,
+                style: const TextStyle(color: Colors.grey, fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -37,14 +102,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Samsung Smart TV Remote',
       debugShowCheckedModeBanner: false,
-
-      // ✅ دعم كامل للغات بما فيها العربية
       supportedLocales: const [
         Locale('en', 'US'),
         Locale('ar', 'SA'),
         Locale('es', 'ES'),
       ],
-
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: AppTheme.backgroundDark,
         colorScheme: const ColorScheme.dark(
@@ -55,7 +117,6 @@ class MyApp extends StatelessWidget {
           bodyLarge: TextStyle(color: AppTheme.textWhite),
           bodyMedium: TextStyle(color: AppTheme.textGrey),
         ),
-        // ✅ Snackbar يتناسب مع التصميم
         snackBarTheme: SnackBarThemeData(
           backgroundColor: AppTheme.backgroundDark.withOpacity(0.95),
           contentTextStyle: const TextStyle(color: AppTheme.textWhite),
@@ -65,7 +126,6 @@ class MyApp extends StatelessWidget {
           ),
           behavior: SnackBarBehavior.floating,
         ),
-        // ✅ ElevatedButton افتراضي
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.accentCyan,
@@ -76,8 +136,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-
-      // ✅ RemoteScreenTablet يدعم الهاتف والتابليت والأفقي والعمودي
       home: const RemoteScreenTablet(),
     );
   }
